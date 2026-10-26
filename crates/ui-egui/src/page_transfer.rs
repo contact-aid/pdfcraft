@@ -71,7 +71,7 @@ impl PdfCraftApp {
                 return;
             }
             self.page_drag = Some(PageDrag {
-                clip: PageClip { from: id, name: doc.name.clone(), bytes: doc.bytes.clone(), pages: pages.clone() },
+                clip: PageClip { password: doc.password.clone(), from: id, name: doc.name.clone(), bytes: doc.bytes.clone(), pages: pages.clone() },
                 generation: doc.edit_generation(),
             });
         }
@@ -106,6 +106,7 @@ impl PdfCraftApp {
         if self.apply_edit(Edit::InsertPagesFrom {
             name: drag.clip.name,
             bytes: drag.clip.bytes,
+            password: drag.clip.password,
             pages: Some(drag.clip.pages),
             at,
             field_conflicts: FieldConflicts::Rename,

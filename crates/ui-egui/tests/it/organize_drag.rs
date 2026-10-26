@@ -272,3 +272,45 @@ fn replacing_a_document_cancels_an_organize_drag_before_pointer_release() {
     assert_eq!(page_texts(h.state()), expected, "releasing the old drag must not reorder replacement pages");
     assert_saved_order(&h, &expected);
 }
+
+#[test]
+fn dragging_password_protected_pages_uses_the_open_source_credentials() {
+    let mut h = two_documents();
+    assert!(
+        h.state_mut().apply_edit(Edit::Protect(pdfcraft_engine::Protection { open_password: Some("source-secret".into()), ..Default::default() }))
+    );
+    h.run_steps(3);
+    let source = h.state().views[0].id;
+    let doc = h.state().session.get(source).unwrap();
+    assert!(doc.password.is_some());
+    assert!(pdfcraft_cos::Document::open(doc.bytes.clone()).is_err());
+    let (_, modifiers) = start_drag(&mut h, false);
+    let tab = h.get_by_label("target.pdf").rect().center();
+    h.hover_at(tab);
+    h.run_steps(3);
+    let gap = h.get_by_label("Page 2").rect().left_center() + egui::vec2(5.0, 0.0);
+    h.hover_at(gap);
+    h.run_steps(2);
+    release(&mut h, gap, modifiers);
+    let target = h.state().views[1].id;
+    assert_eq!(h.state().session.get(target).unwrap().info.pages.len(), 6);
+    h.state_mut().undo();
+    assert_eq!(h.state().session.get(target).unwrap().info.pages.len(), 4);
+    assert_eq!(h.state().session.get(source).unwrap().info.pages.len(), 4);
+}
+
+#[test]
+fn opening_a_drag_target_grid_clears_a_stale_selection_even_if_cancelled() {
+    let mut h = two_documents();
+    h.state_mut().views[1].selected = [3].into();
+    assert_eq!(h.state().views[1].current, 0);
+    let (_, modifiers) = start_drag(&mut h, false);
+    let tab = h.get_by_label("target.pdf").rect().center();
+    h.hover_at(tab);
+    h.run_steps(3);
+    assert!(h.state().views[1].organize);
+    assert!(h.state().views[1].selected.is_empty());
+    h.key_press(egui::Key::Escape);
+    release(&mut h, tab, modifiers);
+    assert_eq!(h.state().views[1].target_pages(), vec![0]);
+}

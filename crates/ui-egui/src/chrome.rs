@@ -181,8 +181,8 @@ pub fn tab_strip(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                                     });
                                 if response.clicked() || page_drop_tab {
                                     app.active = Some(i);
-                                    if page_drop_tab {
-                                        app.views[i].organize = true;
+                                    if page_drop_tab && !app.views[i].organize {
+                                        app.views[i].open_organize();
                                     }
                                 }
                                 // A middle click closes the tab, as in Acrobat and browsers (#1853);
