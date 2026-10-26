@@ -2654,7 +2654,7 @@ impl PdfCraftApp {
             // Null follows the interface language.
             "date_language": self.session.date_language(),
             "author": self.comment_prefs.author,
-            // Per-tool comment defaults (colours, opacity, widths), so Make Current
+            // Per-tool comment defaults (colours, opacity, widths, font sizes), so Make Current
             // Properties Default survives a restart (#340).
             "comment_styles": self
                 .comment_prefs
@@ -2665,6 +2665,7 @@ impl PdfCraftApp {
                     "opacity": s.opacity,
                     "width": s.width,
                     "fill": s.fill,
+                    "font_size": self.comment_prefs.font_size(t),
                 }))
                 .collect::<Vec<_>>(),
             // Drawn signatures keep their original form (older settings read the same).
@@ -2835,6 +2836,9 @@ impl PdfCraftApp {
                 }
                 if let Some(o) = e["opacity"].as_f64() {
                     self.comment_prefs.set_opacity(tool, o);
+                }
+                if let Some(size) = e["font_size"].as_f64() {
+                    self.comment_prefs.set_font_size(tool, size);
                 }
                 if let Some(w) = e["width"].as_f64() {
                     self.comment_prefs.set_width(tool, w);

@@ -2657,3 +2657,69 @@ fn text_comments_can_save_a_zero_width_default() {
     assert_eq!(restored.comment_prefs.style(CommentTool::TextBox).width, 0.0);
     assert_eq!(restored.comment_prefs.style(CommentTool::Callout).width, 0.0);
 }
+
+/// Both ways of making properties default must preserve independent text sizes across restart.
+/// Exercise actual creation as well as settings: persisting a value alone is not enough.
+#[test]
+fn text_comment_font_defaults_survive_restart_and_apply_to_new_comments() {
+    use pdfcraft_engine::{Edit, LineEnding, NewAnnotation, Shape};
+    let mut h = harness(|_| {});
+    for (index, shape, size) in [
+        (0, Shape::TextBox { rect: [40.0, 100.0, 200.0, 140.0], font_size: 12.0 }, 24.0),
+        (
+            1,
+            Shape::Callout {
+                rect: [80.0, 100.0, 220.0, 140.0],
+                knee: [60.0, 120.0],
+                point: [30.0, 70.0],
+                font_size: 10.0,
+                ending: LineEnding::OpenArrow,
+            },
+            30.0,
+        ),
+    ] {
+        h.state_mut().apply_edit(Edit::AddAnnotation(NewAnnotation {
+            page: 0,
+            shape,
+            style: Default::default(),
+            contents: "Source".into(),
+            author: "Tester".into(),
+        }));
+        h.run_steps(2);
+        h.state_mut().open_comment_props(0, index);
+        h.run_steps(2);
+        h.state_mut().comment_props.as_mut().unwrap().edited.font_size = Some(size);
+        if index == 0 {
+            h.get_by_label("Make Properties Default").click();
+        }
+        h.get_by_label("OK").click();
+        h.run_steps(3);
+        if index == 1 {
+            h.state_mut().make_comment_default(0, index);
+        }
+    }
+    let settings = h.state().persist();
+    for (tool, size, drawn) in [("freetext", 24.0, false), ("freetext", 24.0, true), ("callout", 30.0, true)] {
+        let settings = settings.clone();
+        let mut fresh = harness(move |app| {
+            app.restore(&settings);
+            app.set_option("quick", tool).unwrap();
+        });
+        if drawn {
+            drag_pt(&mut fresh, (40.0, 150.0), (140.0, 140.0));
+        } else {
+            click_pt(&mut fresh, (40.0, 150.0));
+        }
+        post_text(&mut fresh, "Hello");
+        let app = fresh.state();
+        let id = app.views[0].id;
+        assert_eq!(app.session.get(id).unwrap().comment_props(0, 0).unwrap().font_size, Some(size), "{tool}, drawn={drawn}");
+        // The rendered text must fit its box at the saved size, including a short drawn box.
+        let r = comments(&fresh)[0].rect;
+        assert!(f64::from(r[3] - r[1]) >= size * 1.2, "text at {size} pt needs a taller box: {r:?}");
+        let saved = app.session.save_bytes(id).unwrap();
+        let mut reopened = pdfcraft_engine::Session::new();
+        let id = reopened.open("saved.pdf", None, saved, None).unwrap();
+        assert_eq!(reopened.get(id).unwrap().comment_props(0, 0).unwrap().font_size, Some(size));
+    }
+}

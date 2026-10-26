@@ -40,6 +40,37 @@ fn home_shows_welcome_and_tools() {
 }
 
 #[test]
+fn comment_font_size_settings_reject_invalid_values() {
+    use pdfcraft_ui_egui::comments::CommentTool;
+    let mut app = PdfCraftApp::new();
+    // Settings from an older version have no size and keep the original defaults.
+    app.restore(r#"{"comment_styles":[{"tool":"comment.freetext"},{"tool":"comment.callout"}]}"#);
+    assert_eq!(app.comment_prefs.font_size(CommentTool::TextBox), Some(12.0));
+    assert_eq!(app.comment_prefs.font_size(CommentTool::Callout), Some(10.0));
+    app.restore(
+        r#"{"comment_styles":[
+        {"tool":"comment.callout","font_size":30},
+        {"tool":"comment.callout","font_size":0},
+        {"tool":"comment.freetext","font_size":401},
+        {"tool":"comment.callout","font_size":"large"},
+        {"tool":"comment.freetext","font_size":null},
+        {"tool":"comment.note","font_size":30}
+    ]}"#,
+    );
+    assert_eq!(app.comment_prefs.font_size(CommentTool::Callout), Some(30.0));
+    assert_eq!(app.comment_prefs.font_size(CommentTool::TextBox), Some(12.0));
+    assert_eq!(app.comment_prefs.font_size(CommentTool::Note), None);
+    for invalid in [f64::NAN, f64::INFINITY, f64::NEG_INFINITY, -1.0] {
+        app.comment_prefs.set_font_size(CommentTool::Callout, invalid);
+    }
+    assert_eq!(app.comment_prefs.font_size(CommentTool::Callout), Some(30.0));
+    for boundary in [1.0, 400.0] {
+        app.comment_prefs.set_font_size(CommentTool::TextBox, boundary);
+        assert_eq!(app.comment_prefs.font_size(CommentTool::TextBox), Some(boundary));
+    }
+}
+
+#[test]
 fn tools_panel_side_preference_moves_and_persists() {
     use pdfcraft_ui_egui::Dialog;
 

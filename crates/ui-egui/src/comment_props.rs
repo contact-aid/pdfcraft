@@ -24,7 +24,7 @@ pub struct PropsDraft {
     pub original: CommentProps,
     pub edited: CommentProps,
     /// Acrobat's Make Properties Default box: on OK, new comments of this kind take the edited
-    /// colour, opacity and line width too.
+    /// colour, opacity, line width and font size too.
     pub make_default: bool,
 }
 
@@ -87,14 +87,14 @@ impl PdfCraftApp {
     }
 
     /// Make Current Properties Default: new comments of this kind take this one's colour,
-    /// opacity and line width.
+    /// opacity, line width and font size.
     pub fn make_comment_default(&mut self, page: usize, index: usize) {
         let Some(p) = self.active_ids().and_then(|(_, id)| self.session.get(id)).and_then(|doc| doc.comment_props(page, index)) else { return };
         self.make_props_default(page, index, &p);
     }
 
     /// New comments of the kind at `(page, index)` take the look in `p`: its colour, opacity,
-    /// line width and (for shapes) fill. `p` may be a Comment Properties draft not applied yet.
+    /// line width, font size and (for shapes) fill. `p` may be a Comment Properties draft not applied yet.
     pub fn make_props_default(&mut self, page: usize, index: usize, p: &CommentProps) {
         let Some((_, id)) = self.active_ids() else { return };
         let Some(doc) = self.session.get(id) else { return };
@@ -108,6 +108,9 @@ impl PdfCraftApp {
             style.fill = p.fill;
         }
         self.comment_prefs.set_style(tool, style);
+        if let Some(size) = p.font_size {
+            self.comment_prefs.set_font_size(tool, size);
+        }
         // Keep invisible defaults out of tools where a zero stroke would make them disappear.
         self.comment_prefs.set_opacity(tool, p.opacity);
         if let Some(w) = p.width {
