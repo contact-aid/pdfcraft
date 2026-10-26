@@ -651,7 +651,7 @@ mod tests {
     #[test]
     fn pages_is_a_top_level_menu_in_the_native_macos_bar() {
         let (app, ctx) = app(&["a.pdf"]);
-        let bar = craft_menu::layout(&app.menu_bar(&ctx), Target::Mac, &layout_options()).bar;
+        let bar = craft_menu::mac_layout(&app.menu_bar(&ctx), &layout_options()).bar;
         let pages = bar.menus.iter().position(|m| m.title == "Pages").expect("top-level Pages menu");
         let edit = bar.menus.iter().position(|m| m.role == MenuRole::Edit).unwrap();
         let view = bar.menus.iter().position(|m| m.role == MenuRole::View).unwrap();
