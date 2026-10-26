@@ -63,3 +63,15 @@ deterministic; the engine supplies them.
 
 Callouts, polygons and polylines, clouds, carets (insert/replace text), stamps, file
 attachments, rich text (`/RC`, `/DS`), and the shared named-appearance cache Acrobat writes.
+
+## Review-area resizing
+
+`set_rect` scales every quadrilateral of highlights, strikethroughs and redaction review marks
+within the new rectangle, preserving native identity, metadata and reply links. Notes keep
+their existing appearance and flags. Source frames, coordinates and allocation sizes are
+validated before mutation; a redraw that is refused restores the original dictionary.
+Resizing redaction review geometry does not remove page content; applying redactions remains
+a separate operation. The UI exposes geometry handles for highlights and strikethroughs;
+this does not reselect text by character or add/remove marked lines.
+
+This refresh builds on PR #2927 by Ferris, with the original tests moved to the current layout.

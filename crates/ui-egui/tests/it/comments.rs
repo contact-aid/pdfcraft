@@ -2657,3 +2657,33 @@ fn text_comments_can_save_a_zero_width_default() {
     assert_eq!(restored.comment_prefs.style(CommentTool::TextBox).width, 0.0);
     assert_eq!(restored.comment_prefs.style(CommentTool::Callout).width, 0.0);
 }
+
+#[test]
+fn a_selected_highlight_can_be_resized_deleted_and_undone() {
+    use pdfcraft_engine::{Edit, Markup, NewAnnotation, Shape};
+    let mut h = harness(|app| {
+        app.set_option("quick", "select").unwrap();
+        app.apply_edit(Edit::AddAnnotation(NewAnnotation {
+            page: 0,
+            shape: Shape::TextMarkup { kind: Markup::Highlight, quads: vec![[20.0, 158.0, 80.0, 158.0, 20.0, 140.0, 80.0, 140.0]] },
+            style: Default::default(),
+            contents: "Keep this comment".into(),
+            author: "Tester".into(),
+        }));
+    });
+    click_pt(&mut h, (40.0, 149.0));
+    assert_eq!(h.state().views[0].comments.selected, Some((0, 0)));
+    drag_pt(&mut h, (80.0, 149.0), (140.0, 149.0));
+    let a = &comments(&h)[0];
+    assert!((a.rect[2] - 140.0).abs() < 2.0, "the highlight's right handle changes its area: {:?}", a.rect);
+    assert_eq!(a.contents.as_deref(), Some("Keep this comment"));
+    h.key_press(egui::Key::Delete);
+    h.run_steps(3);
+    assert!(comments(&h).is_empty());
+    h.state_mut().undo();
+    h.run_steps(3);
+    assert!((comments(&h)[0].rect[2] - 140.0).abs() < 2.0);
+    h.state_mut().undo();
+    h.run_steps(3);
+    assert!((comments(&h)[0].rect[2] - 80.0).abs() < 2.0);
+}

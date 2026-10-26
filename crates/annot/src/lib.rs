@@ -20,7 +20,10 @@ use pdfcraft_cos::{Dict, Document, ObjRef, Object, PdfString, Stream};
 
 pub mod appearance;
 pub mod links;
+mod resize;
 
+#[cfg(test)]
+mod resize_tests;
 #[cfg(test)]
 mod tests;
 
@@ -1921,15 +1924,18 @@ pub fn move_annotation(doc: &mut Document, page: usize, index: usize, dx: f64, d
     Ok(())
 }
 
-/// Resize a rectangle, oval, text box, stamp or drawing to `rect`. Stamps keep their appearance,
+/// Resize a rectangle, oval, text box, stamp, note, drawing, or a quad-based review mark
+/// (highlight, strikethrough or redaction mark) to `rect`. Stamps and notes keep their appearance,
 /// which PDF viewers scale from its bounding box into the new rectangle; drawings scale their
-/// strokes and get a new one.
+/// strokes and quad marks scale their `/QuadPoints`; both get a new appearance.
 pub fn set_rect(doc: &mut Document, page: usize, index: usize, rect: [f64; 4], meta: &Meta) -> Result<(), AnnotError> {
     let (_, r) = annot_ref(doc, page, index)?;
     unlocked(doc, r)?;
     let d = annot_dict(doc, r);
     let subtype = String::from_utf8_lossy(d.name(b"Subtype").unwrap_or_default()).into_owned();
-    if subtype == "Stamp" {
+    if subtype == "Stamp" || subtype == "Text" {
+        // Stamps keep their appearance and notes keep their icon: viewers scale the appearance
+        // stream's bounding box into the new /Rect, so the picture or icon really does resize.
         let rect = normalize(rect);
         if !finite(&rect) || rect[2] <= rect[0] || rect[3] <= rect[1] {
             return Err(AnnotError::Invalid("invalid rectangle (too small)".into()));
@@ -1942,6 +1948,9 @@ pub fn set_rect(doc: &mut Document, page: usize, index: usize, rect: [f64; 4], m
     }
     if subtype == "Ink" {
         return resize_ink(doc, r, normalize(rect), meta);
+    }
+    if matches!(subtype.as_str(), "Highlight" | "StrikeOut" | "Redact") {
+        return resize::quads(doc, r, normalize(rect), meta);
     }
     if !matches!(subtype.as_str(), "Square" | "Circle" | "FreeText") {
         return Err(AnnotError::Invalid(format!("{subtype} comments can't be resized")));

@@ -3606,9 +3606,9 @@ tier = "P0"
 milestone = "M5"
 status = "shipped"
 commands = ["comment.note"]
-tools = ["comment_add"]
-evidence = ["crates/ui-egui/tests/it/comments.rs::sticky_note_composer_posts_and_returns_to_select", "crates/ui-egui/tests/it/comments.rs::the_comment_composer_shortcut_only_posts_the_focused_editor", "crates/annot/src/tests.rs::every_tool_creates_a_drawable_comment", "crates/annot/src/tests.rs::every_note_icon_draws_its_own_shape", "crates/annot/src/tests.rs::a_star_note_keeps_its_star_when_recoloured", "crates/engine/src/tests.rs::sticky_notes_stay_upright_where_they_are_placed_on_rotated_pages", "crates/render/src/raster.rs::no_rotate_notes_stay_upright_at_their_corner_on_rotated_pages", "crates/ui-egui/tests/it/comments.rs::a_sticky_note_on_a_turned_page_is_picked_where_it_is_drawn"]
-notes = "our own icon drawings for the seven standard /Name values of ISO 32000-2 Table 175 (Comment, Note, Help, Insert, Key, NewParagraph, Paragraph) and seven further names (Check, Circle, Cross, CrossHairs, Star, RightArrow, UpArrow), each its own shape, chosen in Properties or comment_add, and kept when the colour changes; another name draws as Note. With a pop-up; Ctrl+Enter (also Command+Enter) posts from the focused editor, Shift+Enter adds a newline. Notes are saved with the NoRotate flag, and it is honoured: on a page with /Rotate the icon stays upright with its top-left where it was placed, and is selected and hovered there (#2583). Not yet: opening the pop-ups a file saves open (/Open); NoZoom (the icon scales with the zoom); printing and flattening still place the icon in its /Rect, turned with the page."
+tools = ["comment_edit", "comment_add"]
+evidence = ["crates/engine/src/tests/annotation_resize.rs::review_resizes_render_and_keep_native_identity_through_history_and_save", "crates/ui-egui/tests/it/comments.rs::sticky_note_composer_posts_and_returns_to_select", "crates/ui-egui/tests/it/comments.rs::the_comment_composer_shortcut_only_posts_the_focused_editor", "crates/annot/src/tests.rs::every_tool_creates_a_drawable_comment", "crates/annot/src/tests.rs::every_note_icon_draws_its_own_shape", "crates/annot/src/tests.rs::a_star_note_keeps_its_star_when_recoloured", "crates/engine/src/tests.rs::sticky_notes_stay_upright_where_they_are_placed_on_rotated_pages", "crates/render/src/raster.rs::no_rotate_notes_stay_upright_at_their_corner_on_rotated_pages", "crates/ui-egui/tests/it/comments.rs::a_sticky_note_on_a_turned_page_is_picked_where_it_is_drawn"]
+notes = "comment_edit rect can resize the icon while preserving its original appearance and flags; no GUI note resize handles added. our own icon drawings for the seven standard /Name values of ISO 32000-2 Table 175 (Comment, Note, Help, Insert, Key, NewParagraph, Paragraph) and seven further names (Check, Circle, Cross, CrossHairs, Star, RightArrow, UpArrow), each its own shape, chosen in Properties or comment_add, and kept when the colour changes; another name draws as Note. With a pop-up; Ctrl+Enter (also Command+Enter) posts from the focused editor, Shift+Enter adds a newline. Notes are saved with the NoRotate flag, and it is honoured: on a page with /Rotate the icon stays upright with its top-left where it was placed, and is selected and hovered there (#2583). Not yet: opening the pop-ups a file saves open (/Open); NoZoom (the icon scales with the zoom); printing and flattening still place the icon in its /Rect, turned with the page."
 
 [[feature]]
 id = "comment.highlight"
@@ -3618,9 +3618,9 @@ tier = "P0"
 milestone = "M5"
 status = "shipped"
 commands = ["comment.highlight"]
-tools = ["comment_add"]
-evidence = ["crates/ui-egui/tests/it/comments.rs::dragging_over_text_with_the_highlighter_highlights_it", "crates/ui-egui/tests/it/comments.rs::a_new_highlight_opens_its_note_for_typing", "crates/engine/src/tests.rs::highlight_multiplies_over_text"]
-notes = "drag over text, or pick the tool with text selected; a new highlight opens its note for typing in the Comments panel; agents can highlight by text search"
+tools = ["comment_edit", "comment_add"]
+evidence = ["crates/ui-egui/tests/it/comments.rs::a_selected_highlight_can_be_resized_deleted_and_undone", "crates/annot/src/resize_tests.rs::resize_highlight_scales_every_quad_and_keeps_identity", "crates/ui-egui/tests/it/comments.rs::dragging_over_text_with_the_highlighter_highlights_it", "crates/ui-egui/tests/it/comments.rs::a_new_highlight_opens_its_note_for_typing", "crates/engine/src/tests.rs::highlight_multiplies_over_text"]
+notes = "Select shows resize handles for geometric resizing of native highlight quadrilaterals; Delete and Undo retain the existing workflow. Character-based text reselection and adding or removing marked lines are not implemented. drag over text, or pick the tool with text selected; a new highlight opens its note for typing in the Comments panel; agents can highlight by text search"
 
 [[feature]]
 id = "comment.underline"
@@ -3642,9 +3642,9 @@ tier = "P0"
 milestone = "M5"
 status = "shipped"
 commands = ["comment.strikeout"]
-tools = ["comment_add"]
-evidence = ["crates/ui-egui/tests/it/comments.rs::a_selection_made_first_is_marked_when_a_tool_is_picked", "crates/annot/src/tests.rs::every_tool_creates_a_drawable_comment"]
-notes = ""
+tools = ["comment_edit", "comment_add"]
+evidence = ["crates/annot/src/resize_tests.rs::resize_strikeout_and_redact_marks_scale_their_quads", "crates/ui-egui/tests/it/comments.rs::a_selection_made_first_is_marked_when_a_tool_is_picked", "crates/annot/src/tests.rs::every_tool_creates_a_drawable_comment"]
+notes = "Select exposes geometry resize handles. This scales review quads rather than reselecting text. "
 
 [[feature]]
 id = "comment.squiggly"
@@ -5623,9 +5623,9 @@ tier = "P0"
 milestone = "M8"
 status = "shipped"
 commands = ["redact.mark"]
-tools = ["redact_mark"]
-evidence = ["crates/ui-egui/tests/it/redact.rs::marking_applying_and_clearing", "crates/automation/tests/it/automation.rs::redacting_through_tools", "crates/redact/src/tests.rs::glyphs_under_a_mark_go_and_the_rest_stays_put"]
-notes = "drag across text (or select first) with the Redact tool"
+tools = ["comment_edit", "redact_mark"]
+evidence = ["crates/engine/src/tests/annotation_resize.rs::resizing_redaction_changes_only_review_until_apply_then_removes_the_new_target", "crates/ui-egui/tests/it/redact.rs::marking_applying_and_clearing", "crates/automation/tests/it/automation.rs::redacting_through_tools", "crates/redact/src/tests.rs::glyphs_under_a_mark_go_and_the_rest_stays_put"]
+notes = "comment_edit rect resizes review geometry without removing content; explicit ApplyRedactions uses the new target. No new GUI redaction handles. drag across text (or select first) with the Redact tool"
 
 [[feature]]
 id = "protect.redact-area"

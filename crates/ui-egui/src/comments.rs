@@ -719,10 +719,11 @@ fn is_markup(subtype: &str) -> bool {
     matches!(subtype, "Highlight" | "Underline" | "StrikeOut" | "Squiggly")
 }
 
-/// Rectangles, ovals, text boxes, stamps and drawings (drawn signatures among them). A callout's
+/// Rectangles, ovals, text boxes, stamps, drawings and supported quad-based review marks. A callout's
 /// `/Rect` also holds its leader line, so it only moves.
 fn resizable(a: &Annotation) -> bool {
     matches!(a.subtype.as_str(), "Square" | "Circle" | "FreeText" | "Stamp" | "Ink") && a.intent.as_deref() != Some("FreeTextCallout")
+        || matches!(a.subtype.as_str(), "Highlight" | "StrikeOut") && !a.quads.is_empty() && !a.locked
 }
 
 /// Lines, connected lines, polygons and clouds: their ends and corners have handles of their own
@@ -1092,7 +1093,9 @@ pub(crate) fn fill_grabs(cx: &PageCx<'_>, view: &DocView) -> bool {
 /// With the Select tool, a comment that would move (not text markup) is picked up before a form
 /// field under it, so a signature placed over a field can still be dragged off it.
 pub(crate) fn select_grabs(cx: &PageCx<'_>, view: &DocView) -> bool {
-    cx.tool == QuickTool::Select && grabs(cx, view, |a| !is_markup(&a.subtype))
+    cx.tool == QuickTool::Select
+        && (grabs(cx, view, |a| !is_markup(&a.subtype))
+            || !cx.hidden && press_point(cx).is_some_and(|p| on_handle(cx, view, p, |a| is_markup(&a.subtype))))
 }
 
 /// With a shape tool (rectangle, oval, line, polygon…), the selected comment's resize handles
@@ -1350,6 +1353,13 @@ pub(crate) fn paint_page(ui: &egui::Ui, painter: &egui::Painter, cx: &PageCx<'_>
         if is_markup(&a.subtype) && !a.quads.is_empty() {
             for r in cx.screen_rects(a) {
                 painter.rect_stroke(r.expand(2.0), CornerRadius::ZERO, Stroke::new(1.0, SELECT_BLUE), egui::StrokeKind::Middle);
+            }
+            if cx.allowed && resizable(a) {
+                let shift = ui.input(|i| i.modifiers.shift);
+                let r = cx.adjusted_rect(a, cv.gesture.as_ref(), pointer, shift, view.pending_edit.as_ref()).expand(2.0);
+                for h in HANDLES {
+                    painter.circle(handle_pos(r, h), 4.5, Color32::WHITE, Stroke::new(1.0, SELECT_BLUE));
+                }
             }
             return paint_gesture(painter, cx, view);
         }
