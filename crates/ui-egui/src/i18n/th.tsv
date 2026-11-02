@@ -2722,6 +2722,7 @@ theme	Appearance	ลักษณะที่ปรากฏ
 	Remove crop	เอาการครอบตัดออก
 	Send backward	ส่งไปข้างหลัง
 	Send to back	ส่งไปไว้ข้างหลังสุด
+	Text extends outside the frame.	ข้อความล้นออกนอกกรอบ
 
 # Date picker: Today button (#4274) (AI-assisted, not separately native-reviewed)
 	Today	วันนี้

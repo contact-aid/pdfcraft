@@ -2900,6 +2900,7 @@ certificate	Version	Verze
 	Send to back	Přenést do pozadí
 	Arrange image	Uspořádat obrázek
 	Crop	Oříznout
+	Text extends outside the frame.	Text přesahuje rámec.
 
 # Date picker: Today button (#4274) (AI-assisted, not separately native-reviewed)
 	Today	Dnes

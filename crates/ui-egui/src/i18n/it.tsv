@@ -2825,6 +2825,7 @@ certificate	SHA-256 digest	Impronta SHA-256
 	Remove crop	Rimuovi ritaglio
 	Send backward	Porta indietro
 	Send to back	Porta in secondo piano
+	Text extends outside the frame.	Il testo si estende oltre la cornice.
 
 # Date picker: Today button (#4274) (AI-assisted, not separately native-reviewed)
 	Today	Oggi

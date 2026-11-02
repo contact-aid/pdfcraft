@@ -2816,6 +2816,7 @@ theme	Appearance	모양
 	Remove crop	자르기 제거
 	Send backward	뒤로 보내기
 	Send to back	맨 뒤로 보내기
+	Text extends outside the frame.	텍스트가 프레임 밖으로 나갑니다.
 
 # Date picker: Today button (#4274) (AI-assisted, not separately native-reviewed)
 	Today	오늘

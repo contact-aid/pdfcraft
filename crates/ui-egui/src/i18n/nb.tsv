@@ -2735,6 +2735,7 @@ key	Space	Mellomrom
 	Remove crop	Fjern beskjæring
 	Send backward	Flytt bakover
 	Send to back	Plasser lengst bak
+	Text extends outside the frame.	Teksten strekker seg utenfor rammen.
 
 # Date picker: Today button (#4274) (AI-assisted, not separately native-reviewed)
 	Today	I dag

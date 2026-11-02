@@ -2858,6 +2858,7 @@ certificate	Version	Version
 	Remove crop	Supprimer le recadrage
 	Send backward	Reculer
 	Send to back	Mettre à l'arrière-plan
+	Text extends outside the frame.	Le texte dépasse du cadre.
 
 # Date picker: Today button (#4274) (AI-assisted, not separately native-reviewed)
 	Today	Aujourd'hui
@@ -2882,3 +2883,8 @@ certificate	Version	Version
 	No image on clipboard to paste	Aucune image à coller dans le presse-papiers
 	Pinned {tool} to Home	{tool} épinglé à l’Accueil
 	Unpinned {tool} from Home	{tool} désépinglé de l’Accueil
+
+# Inline paragraph frame controls (contributor-original French, 2026-11-02)
+	Resize paragraph from left	Redimensionner le paragraphe depuis la gauche
+	Resize paragraph from right	Redimensionner le paragraphe depuis la droite
+	Move paragraph	Déplacer le paragraphe

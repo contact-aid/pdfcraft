@@ -2868,6 +2868,7 @@ certificate	Version	الإصدار
 	Remove crop	إزالة القص
 	Send backward	إرسال للخلف
 	Send to back	إرسال إلى المؤخرة
+	Text extends outside the frame.	يمتد النص خارج الإطار.
 
 # Date picker: Today button (#4274) (AI-assisted, not separately native-reviewed)
 	Today	اليوم

@@ -2506,6 +2506,7 @@ animation effects	Off	Выкл
 	Remove crop	Убрать обрезку
 	Send backward	Переместить назад
 	Send to back	На задний план
+	Text extends outside the frame.	Текст выходит за пределы рамки.
 
 # Date picker: Today button (#4274) (AI-assisted, not separately native-reviewed)
 	Today	Сегодня

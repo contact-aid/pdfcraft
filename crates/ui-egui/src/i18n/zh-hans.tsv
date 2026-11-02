@@ -2557,6 +2557,7 @@ animation effects	Off	关
 	Remove crop	移除裁剪
 	Send backward	下移一层
 	Send to back	置于底层
+	Text extends outside the frame.	文本超出边框。
 
 # Date picker: Today button (#4274) (AI-assisted, not separately native-reviewed)
 	Today	今天

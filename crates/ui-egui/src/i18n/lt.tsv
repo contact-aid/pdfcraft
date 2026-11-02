@@ -2853,6 +2853,7 @@ theme	Appearance	Išvaizda
 	the area, the spacing and the column widths must be numbers, the spacing 0 or more and each width more than 0	sritis, tarpai ir stulpelių pločiai turi būti skaičiai, tarpai – 0 arba daugiau, o kiekvienas plotis – daugiau nei 0
 	Arrange image	Tvarkyti vaizdą
 	Crop	Apkarpyti
+	Text extends outside the frame.	Tekstas išsikiša už rėmelio.
 
 # Date picker: Today button (#4274) (AI-assisted, not separately native-reviewed)
 	Today	Šiandien

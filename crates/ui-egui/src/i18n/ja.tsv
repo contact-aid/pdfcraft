@@ -2593,6 +2593,7 @@ animation effects	Off	オフ
 	Remove crop	切り抜きを解除
 	Send backward	背面へ移動
 	Send to back	最背面へ移動
+	Text extends outside the frame.	テキストが枠からはみ出しています。
 
 # Date picker: Today button (#4274) (AI-assisted, not separately native-reviewed)
 	Today	今日

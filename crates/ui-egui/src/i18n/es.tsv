@@ -2916,6 +2916,7 @@ theme	Appearance	Aspecto
 	a field named {name} already exists	ya existe un campo llamado {name}
 	Arrange image	Organizar imagen
 	Crop	Recortar
+	Text extends outside the frame.	El texto sobresale del marco.
 
 # Date picker: Today button (#4274) (AI-assisted, not separately native-reviewed)
 	Today	Hoy

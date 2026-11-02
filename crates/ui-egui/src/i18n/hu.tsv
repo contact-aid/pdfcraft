@@ -2593,6 +2593,7 @@ animation effects	Off	Ki
 	Remove crop	Körülvágás eltávolítása
 	Send backward	Hátrébb küldés
 	Send to back	Hátraküldés
+	Text extends outside the frame.	A szöveg túlnyúlik a kereten.
 
 # Date picker: Today button (#4274) (AI-assisted, not separately native-reviewed)
 	Today	Ma

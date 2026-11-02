@@ -2846,6 +2846,7 @@ theme	Appearance	Aspecte
 	Unpin tool	Desenganxa l'eina
 	Arrange image	Organitza la imatge
 	Crop	Escapça
+	Text extends outside the frame.	El text sobresurt del marc.
 
 # Date picker: Today button (#4274) (AI-assisted, not separately native-reviewed)
 	Today	Avui
