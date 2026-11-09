@@ -2,7 +2,8 @@
 use pdfcraft_engine::DocId;
 
 pub(crate) enum Action {
-    Close(DocId),
+    /// Close a tab, by its stable view key.
+    Close(u64),
     Reopen,
     Reveal(DocId),
     /// Move the tab into a window of its own (M14).
@@ -12,10 +13,14 @@ pub(crate) enum Action {
 }
 
 impl crate::PdfCraftApp {
+    pub(crate) fn tab_with_key(&self, key: u64) -> Option<usize> {
+        self.views.iter().position(|v| v.view_key() == key)
+    }
+
     pub(crate) fn tab_action(&mut self, action: Action) {
         match action {
-            Action::Close(id) => {
-                if let Some(i) = self.views.iter().position(|v| v.id == id) {
+            Action::Close(tab) => {
+                if let Some(i) = self.tab_with_key(tab) {
                     self.request_close_tab(i);
                 }
             }
@@ -174,15 +179,15 @@ mod tests {
     fn confirmed_close_uses_id_and_cancel_keeps_history_empty() {
         let mut app = crate::PdfCraftApp::new();
         app.open_bytes("first.pdf", Some("/tmp/first.pdf".into()), PDF.to_vec()).unwrap();
-        let first = app.views[0].id;
+        let (first, first_tab) = (app.views[0].id, app.views[0].view_key());
         app.open_bytes("second.pdf", None, PDF.to_vec()).unwrap();
         app.session.apply(first, pdfcraft_engine::Edit::InsertBlankPage { at: 0, width: 300.0, height: 400.0 }).unwrap();
-        app.tab_action(Action::Close(first));
+        app.tab_action(Action::Close(first_tab));
         assert_eq!(app.views.len(), 2);
         assert!(app.closed_tabs.is_empty());
         app.resolve_close(&egui::Context::default(), None);
         assert!(app.closed_tabs.is_empty());
-        app.tab_action(Action::Close(first));
+        app.tab_action(Action::Close(first_tab));
         app.resolve_close(&egui::Context::default(), Some(false));
         assert_eq!(app.views.len(), 1);
         assert_eq!(app.closed_tabs, ["/tmp/first.pdf"]);

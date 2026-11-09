@@ -290,3 +290,36 @@ fn a_file_picked_from_a_window_opens_there() {
     assert_eq!(names(h.state()), ["b.pdf"], "not in the main window");
     let _ = std::fs::remove_dir_all(dir);
 }
+
+#[test]
+fn the_tab_menu_moves_the_existing_dirty_document_into_a_new_window() {
+    let mut h = harness(&["first.pdf", "second.pdf"]);
+    let (_, doc) = h.state().active_ids().unwrap();
+    let original = h.state().session.get(doc).unwrap().info.pages.len();
+    assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::InsertBlankPage { at: 0, width: 300.0, height: 400.0 }));
+    h.state_mut().views[1].set_zoom(1.42);
+    h.run_steps(1);
+
+    let pos = tab_rect(&h, "second.pdf (edited)").center();
+    h.event(egui::Event::PointerMoved(pos));
+    for pressed in [true, false] {
+        h.event(egui::Event::PointerButton { pos, button: egui::PointerButton::Secondary, pressed, modifiers: egui::Modifiers::NONE });
+        h.run_steps(1);
+    }
+    h.run_steps(2);
+    assert!(h.query_by_label("Split right").is_none());
+    assert!(h.query_by_label("Split down").is_none());
+    assert!(pdfcraft_engine::commands::command("view.split").is_none());
+    h.get_by_label("Move to new window").click();
+    h.run_steps(4);
+
+    let detached = second_window(&h);
+    assert_eq!(names(h.state()), ["first.pdf"]);
+    assert_eq!(names_in(&mut h, detached), ["second.pdf"]);
+    assert_eq!(h.state().window_of_doc(doc), Some(detached));
+    let current = h.state().session.get(doc).unwrap();
+    assert!(current.dirty);
+    assert_eq!(current.info.pages.len(), original + 1);
+    assert!(current.can_undo().is_some());
+    assert_eq!(h.state_mut().with_window(detached, |a| a.views[0].zoom), Some(1.42));
+}

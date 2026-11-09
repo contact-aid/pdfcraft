@@ -5,6 +5,7 @@ impl PdfCraftApp {
     pub(super) fn show_progress(&mut self, ctx: &egui::Context) {
         if widgets::progress_notice(self, ctx) {
             self.cancel_optimize();
+            self.cancel_scan_clean();
         }
     }
 
@@ -104,21 +105,15 @@ impl PdfCraftApp {
         }
         // Retire hidden documents before admitting the visible document's textures, so the
         // three cache limits apply to the application, regardless of how many tabs are open.
-        // Side by side: the comparison's old file renders alongside the active one.
-        let partner = self.active.and_then(|i| compare_ui::side_by_side(self, i)).map(|(old, _)| old);
+        let active = self.active;
+        let comparison = active.filter(|_| !self.full_screen).and_then(|i| crate::compare_ui::side_by_side(self, i)).map(|(old, _)| old);
         for (i, view) in self.views.iter_mut().enumerate() {
-            if Some(i) != self.active
-                && Some(i) != partner
-                && let Some(doc) = self.session.get(view.id)
-            {
-                view.suspend_rendering(&doc.renderer);
-            }
-        }
-        for i in self.active.into_iter().chain(partner) {
-            if let Some(view) = self.views.get_mut(i)
-                && let Some(doc) = self.session.get(view.id)
-            {
-                view.finish_render_frame(ctx, &doc.info, &doc.renderer);
+            if let Some(doc) = self.session.get(view.id) {
+                if Some(i) == active || Some(i) == comparison {
+                    view.finish_render_frame(ctx, &doc.info, &doc.renderer);
+                } else {
+                    view.suspend_rendering(&doc.renderer);
+                }
             }
         }
     }

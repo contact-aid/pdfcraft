@@ -46,7 +46,8 @@ pub const MAX_WINDOWS: usize = 16;
 /// A new window's size when its source window's size is unknown, in points.
 const DEFAULT_SIZE: Vec2 = vec2(1440.0, 920.0);
 /// The smallest a new window is made, in points (`apps/pdfcraft` gives the main window the same floor).
-const MIN_SIZE: Vec2 = vec2(820.0, 520.0);
+// Detached windows use the same minimum as the main window, so both fit in macOS tiling.
+const MIN_SIZE: Vec2 = vec2(crate::MIN_WINDOW_SIZE[0], crate::MIN_WINDOW_SIZE[1]);
 /// Where a window opened from a menu lands relative to the window it came from.
 const CASCADE: Vec2 = vec2(40.0, 40.0);
 /// Where the pointer holds a tab dropped into empty space: the new window's top-left is this
@@ -93,6 +94,8 @@ pub struct WindowState {
     pub(crate) rotate_draft: crate::RotateDraft,
     pub(crate) sign_draft: Option<crate::SignDraft>,
     pub(crate) ocr_draft: crate::ocr_ui::OcrDraft,
+    all_tools_full: bool,
+    all_tools_tab: (Option<DocId>, bool),
     pub(crate) wizard: crate::actions_ui::Wizard,
     pub(crate) compare_old: Option<DocId>,
     pub(crate) compare: Option<crate::compare_ui::CompareState>,
@@ -179,6 +182,8 @@ impl Default for WindowState {
             rotate_draft: Default::default(),
             sign_draft: None,
             ocr_draft: Default::default(),
+            all_tools_full: false,
+            all_tools_tab: (None, false),
             wizard: Default::default(),
             compare_old: None,
             compare: None,
@@ -354,6 +359,8 @@ impl PdfCraftApp {
             rotate_draft,
             sign_draft,
             ocr_draft,
+            all_tools_full,
+            all_tools_tab,
             wizard,
             compare_old,
             compare,
@@ -430,6 +437,8 @@ impl PdfCraftApp {
         std::mem::swap(&mut self.rotate_draft, rotate_draft);
         std::mem::swap(&mut self.sign_draft, sign_draft);
         std::mem::swap(&mut self.ocr_draft, ocr_draft);
+        std::mem::swap(&mut self.all_tools_full, all_tools_full);
+        std::mem::swap(&mut self.all_tools_tab, all_tools_tab);
         std::mem::swap(&mut self.wizard, wizard);
         std::mem::swap(&mut self.compare_old, compare_old);
         std::mem::swap(&mut self.compare, compare);
@@ -758,7 +767,12 @@ impl PdfCraftApp {
             if let Some(ctx) = &self.ctx {
                 ctx.send_viewport_cmd_to(egui::ViewportId::ROOT, egui::ViewportCommand::Close);
             }
-        } else if self.first_dirty().is_some() {
+            return;
+        }
+        if self.hold_for_any_ocr_review() {
+            return;
+        }
+        if self.first_dirty().is_some() {
             self.close_request = Some(CloseRequest::Window);
         } else {
             self.queue_window_op(WindowOp::Close(self.current_window));
@@ -771,7 +785,9 @@ impl PdfCraftApp {
         if self.current_window == WindowId::ROOT || !ctx.input(|i| i.viewport().close_requested()) {
             return;
         }
-        if self.first_dirty().is_some() {
+        if self.hold_for_any_ocr_review() {
+            ctx.send_viewport_cmd(egui::ViewportCommand::CancelClose);
+        } else if self.first_dirty().is_some() {
             ctx.send_viewport_cmd(egui::ViewportCommand::CancelClose);
             self.close_request = Some(CloseRequest::Window);
         } else {
@@ -1245,6 +1261,14 @@ mod tests {
         // Dropped beyond the screen: on a monitor whose place egui doesn't tell. The size still drops.
         let beyond = new_window_place(Some(&source), Some(Pos2::new(2000.0, 300.0)));
         assert_eq!(beyond, (Some(Pos2::new(2000.0, 300.0) - TAB_GRIP), vec2(1152.0, 582.0)));
+    }
+
+    #[test]
+    fn detaching_from_a_narrow_window_keeps_its_width() {
+        // Half a 1512 pt screen: the second window can also fit on the other half.
+        let size = vec2(756.0, 610.0);
+        let source = WindowGeometry { known: true, rect: Rect::from_min_size(Pos2::new(0.0, 50.0), size), ..Default::default() };
+        assert_eq!(new_window_place(Some(&source), None).1, size);
     }
 
     #[test]
